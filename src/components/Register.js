@@ -1,6 +1,60 @@
-import React from 'react'
+import React, { useContext } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import { AuthContext } from '../contexts/AuthProvider';
 
 const Register = () => {
+  const {createUser,updateUser,verifyEmail,signInGoogle}=useContext(AuthContext)
+
+  const navigate=useNavigate()
+  const location=useLocation()
+  const from=location.state?.from?.pathname||'/'
+
+  const handleCreateUser=(event)=>{
+    event.preventDefault();
+    const name=event.target.name.value;
+    const email=event.target.email.value;
+    const password=event.target.password.value;
+    
+    createUser(email,password)
+    .then((userCredential) => {
+      const user = userCredential.user;
+      updateUser(name);
+      verifyEmail();
+      console.log(user)
+      event.target.reset()
+    })
+    .catch((error) => {
+      const errorMessage = error.message;
+      Swal.fire({
+        icon: 'error',
+        title: 'Something went wrong!',
+        text:errorMessage,
+      })
+    });
+  }
+
+  const handleSignInGoogle=()=>{
+    signInGoogle()
+    .then((result) => {
+      const user = result.user;
+      console.log(user)
+      Swal.fire({
+        icon: 'success',
+        title: 'Sign in google',
+        text:'Sign in google is successfully',
+      })
+      navigate(from,{replace:true})
+    }).catch((error) => {
+      const errorMessage = error.message;
+      Swal.fire({
+        icon: 'error',
+        title: 'Something went wrong!',
+        text:errorMessage,
+      })
+    });
+  }
+
   return (
     <div className='flex justify-center items-center pt-8'>
       <div className='flex flex-col max-w-md p-6 rounded-md sm:p-10 bg-gray-100 text-gray-900'>
@@ -9,6 +63,7 @@ const Register = () => {
           <p className='text-sm text-gray-400'>Create a new account</p>
         </div>
         <form
+          onSubmit={handleCreateUser}
           noValidate=''
           action=''
           className='space-y-12 ng-untouched ng-pristine ng-valid'
@@ -74,7 +129,7 @@ const Register = () => {
           <div className='flex-1 h-px sm:w-16 dark:bg-gray-700'></div>
         </div>
         <div className='flex justify-center space-x-4'>
-          <button aria-label='Log in with Google' className='p-3 rounded-sm'>
+          <button onClick={handleSignInGoogle} aria-label='Log in with Google' className='p-3 rounded-sm'>
             <svg
               xmlns='http://www.w3.org/2000/svg'
               viewBox='0 0 32 32'
@@ -104,9 +159,9 @@ const Register = () => {
         </div>
         <p className='px-6 text-sm text-center text-gray-400'>
           Already have an account yet?{' '}
-          <a href='#' className='hover:underline text-gray-600'>
+          <Link to='/login' href='#' className='hover:underline text-gray-600'>
             Sign In
-          </a>
+          </Link>
           .
         </p>
       </div>

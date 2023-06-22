@@ -1,4 +1,76 @@
+import { useContext, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import { AuthContext } from "../contexts/AuthProvider";
+
 const Login = () => {
+  const {signIn,signInGoogle,resetPassword}=useContext(AuthContext)
+  const [email,setEmail]=useState('');
+
+  const navigate=useNavigate()
+  const location=useLocation()
+  const from=location.state?.from?.pathname||'/'
+  
+  const handleSignIn=(event)=>{
+    event.preventDefault();
+    const email=event.target.email.value;
+    const password=event.target.password.value;
+    
+    signIn(email,password)
+    .then((userCredential) => {
+      const user = userCredential.user;
+      console.log(user)
+      Swal.fire({
+        icon: 'success',
+        title: 'Sign in',
+        text:'Sign in is successfully',
+      })
+      navigate(from,{replace:true})
+    })
+    .catch((error) => {
+      const errorMessage = error.message;
+      Swal.fire({
+        icon: 'error',
+        title: 'Something went wrong!',
+        text:errorMessage,
+      })
+    });
+  }
+
+  const handleSignInGoogle=()=>{
+    signInGoogle()
+    .then((result) => {
+      const user = result.user;
+      console.log(user)
+      Swal.fire({
+        icon: 'success',
+        title: 'Sign in google',
+        text:'Sign in google is successfully',
+      })
+      navigate(from,{replace:true})
+    }).catch((error) => {
+      const errorMessage = error.message;
+      Swal.fire({
+        icon: 'error',
+        title: 'Something went wrong!',
+        text:errorMessage,
+      })
+    });
+  }
+
+  const handleResetPassword=()=>{
+    resetPassword(email)
+    .then(() => {
+      Swal.fire({
+        icon: 'success',
+        title: 'Reset Password',
+        text:'Reset Password is successfully',
+      })
+    })
+    .catch((error) => {
+    });
+  }
+
   return (
     <div className='flex justify-center items-center pt-8'>
       <div className='flex flex-col max-w-md p-6 rounded-md sm:p-10 bg-gray-100 text-gray-900'>
@@ -9,6 +81,7 @@ const Login = () => {
           </p>
         </div>
         <form
+          onSubmit={handleSignIn}
           noValidate=''
           action=''
           className='space-y-6 ng-untouched ng-pristine ng-valid'
@@ -19,6 +92,7 @@ const Login = () => {
                 Email address
               </label>
               <input
+                onBlur={(e)=>setEmail(e.target.value)}
                 type='email'
                 name='email'
                 id='email'
@@ -53,7 +127,7 @@ const Login = () => {
           </div>
         </form>
         <div className='space-y-1'>
-          <button className='text-xs hover:underline text-gray-400'>
+          <button onClick={handleResetPassword} className='text-xs hover:underline text-gray-400'>
             Forgot password?
           </button>
         </div>
@@ -65,7 +139,7 @@ const Login = () => {
           <div className='flex-1 h-px sm:w-16 dark:bg-gray-700'></div>
         </div>
         <div className='flex justify-center space-x-4'>
-          <button aria-label='Log in with Google' className='p-3 rounded-sm'>
+          <button onClick={handleSignInGoogle} aria-label='Log in with Google' className='p-3 rounded-sm'>
             <svg
               xmlns='http://www.w3.org/2000/svg'
               viewBox='0 0 32 32'
@@ -95,9 +169,9 @@ const Login = () => {
         </div>
         <p className='px-6 text-sm text-center text-gray-400'>
           Don't have an account yet?{' '}
-          <a href='#' to='/register' className='hover:underline text-gray-600'>
+          <Link  to='/register' className='hover:underline text-gray-600'>
             Sign up
-          </a>
+          </Link>
           .
         </p>
       </div>
